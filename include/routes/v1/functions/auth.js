@@ -130,22 +130,14 @@ var registerRoute = async (req, res) => {
         await Email.sendWelcome(user);
     }
 
-    if (config.audit.delete.enable) {
-        audit.createAudit({ 
-        action: 'Create', 
-        byUser: {
-            id: req.session.data.user.id,
-            email: req.session.data.user.email,
-            username: req.session.data.user.username,
-        }, 
-        ofUser: {
-            id: user.id,
-            email: user.email,
-            username: user.username
-        },
-        oldObj: '',
-        newObj: user.id 
-        });
+    if (config.audit.create.enable === true) {
+        var auditObj = {
+            action: 'CREATE', 
+            subaction: 'USER',
+            ofUserId: user.id
+        }
+        if (req.session.data) { auditObj.byUserId = req.session.data.user.id }
+        audit.createSingleAudit(auditObj);
     }
 
     res.code(200).send('Account Created');
@@ -212,6 +204,18 @@ async function resetPasswordRoute(req, res, autologin = false) {
             type: 'password-reset-token-error',
             msg: 'Token is invalid, please click on forgot password again.'
         };
+    }
+
+    if (config.audit.edit.enable === true) {
+        var auditObj = {
+            action: 'EDIT',
+            subaction: 'USER_RESET_PASSWORD',
+        }
+        if (req.session.data) { 
+            auditObj.byUserId = req.session.data.user.id;
+            auditObj.ofUserId = req.session.data.user.id;
+        }
+        audit.createSingleAudit(auditObj);
     }
 
     res.code(200);
