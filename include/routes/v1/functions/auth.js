@@ -134,10 +134,12 @@ var registerRoute = async (req, res) => {
         var auditObj = {
             action: 'CREATE', 
             subaction: 'USER',
-            ofUserId: user.id
+            ofUserId: user.id,
+            oldObj: {},
+            newObj: user
         }
         if (req.session.data) { auditObj.byUserId = req.session.data.user.id }
-        audit.createSingleAudit(auditObj);
+        await audit.createSingleAudit(auditObj);
     }
 
     res.code(200).send('Account Created');
@@ -215,7 +217,7 @@ async function resetPasswordRoute(req, res, autologin = false) {
             auditObj.byUserId = req.session.data.user.id;
             auditObj.ofUserId = req.session.data.user.id;
         }
-        audit.createSingleAudit(auditObj);
+        await audit.createSingleAudit(auditObj);
     }
 
     res.code(200);
